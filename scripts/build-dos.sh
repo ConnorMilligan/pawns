@@ -33,12 +33,12 @@ fi
 # Download the PDCurses release inside the container and build the DOS port there.
 # This avoids assuming the repo contains a local 'dos/' directory.
 echo "Building PDCurses DOS port using Docker..."
-docker run --rm -it --volume=${OUTDIR}/pdcurses:/src/pdcurses --volume=${OUTDIR}:/src --volume=${SRCDIR}:/horse --env PDCURSES_SRCDIR=.. $IMAGE \
+docker run --rm -it --volume=${OUTDIR}/pdcurses:/src/pdcurses --volume=${OUTDIR}:/src --volume=${SRCDIR}:/source --env PDCURSES_SRCDIR=.. $IMAGE \
   sh -c "cd /src/pdcurses/dos && wmake -f Makefile.wcc"
 
 # Now build program itself inside the container, linking against the built PDCurses library.
 echo "Building $PROJECT DOS executable using Docker..."
-docker run --rm -it --volume=${OUTDIR}/pdcurses:/src/pdcurses --volume=${OUTDIR}:/src --volume=${SRCDIR}:/horse --env PDCURSES_SRCDIR=.. $IMAGE \
-  wcl -bt=dos -ml -I/src/pdcurses -fe=/src/$PROJECT.exe /horse/$PROJECT.c /src/pdcurses/dos/pdcurses.lib
+docker run --rm -it --volume=${OUTDIR}/pdcurses:/src/pdcurses --volume=${OUTDIR}:/src --volume=${SRCDIR}:/source --env PDCURSES_SRCDIR=.. $IMAGE \
+  sh -c "wcl -bt=dos -ml -I/src/pdcurses -fe=/src/$PROJECT.exe \$(find /source -name '*.c') /src/pdcurses/dos/pdcurses.lib" 
 
 echo "DOS build complete — artifacts in: $OUTDIR"

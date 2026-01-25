@@ -20,7 +20,7 @@ option(PDC_USE_SYSTEM "Use system-installed curses (skip fetching PDCurses)" OFF
 if(WIN32)
     set(DEFAULT_PDC_PORT "wincon")
 else()
-    set(DEFAULT_PDC_PORT "x11")
+    set(DEFAULT_PDC_PORT "sdl2")
 endif()
 set(PDC_PORT "${DEFAULT_PDC_PORT}" CACHE STRING "PDCurses build port (e.g. x11, wincon, sdl2, dos, os2)")
 set_property(CACHE PDC_PORT PROPERTY STRINGS x11 wincon sdl1 sdl2 dos os2)

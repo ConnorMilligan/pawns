@@ -1,23 +1,24 @@
 #include <curses.h>
 
-const char *horse = 
-"^__^\n"
-"(..)\n"
-"|_/ \\_______\n"
-"   \\        )\\\n"
-"    ||-----|| \\\n"
-"    ||     ||\n"
-"    ^^     ^^";
+#include "engine/engine.h"
 
 int main(int argc, char **argv) {    
-    initscr();
-    curs_set(0);
-    noecho();
+    Context ctx;
 
-    printw("%s", horse);
-    refresh();
-    getch();
-    endwin();
+    if (contextBuild(&ctx) != 0) {
+        return 1;
+    }
+
+    if (gameInit(&ctx) != 0) {
+        contextDestroy(&ctx);
+        return 1;
+    }
+
+    while (ctx.state == GAME) {
+        gameUpdate(&ctx);
+    }
+
+    gameDestroy(&ctx);
 
     return 0;
 }
