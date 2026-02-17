@@ -2,27 +2,26 @@
 
 #include <curses.h>
 
-const char *horse = 
-"^__^\n"
-"(..)\n"
-"|_/ \\_______\n"
-"   \\        )\\\n"
-"    ||-----|| \\\n"
-"    ||     ||\n"
-"    ^^     ^^";
+u8 gameDraw(Context *ctx);
+u8 gameHandleInput(Context *ctx);
 
 u8 gameInit(Context *ctx) {
     if (ctx == NULL) {
         return 1;
     }
 
-    ctx->state = GAME;
-
     initscr();
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
     curs_set(0);
+
+    if (contextBuild(ctx, stdscr) != 0) {
+        endwin();
+        return 1;
+    }
+
+    ctx->state = GAME;
 
     return 0;
 }
@@ -32,14 +31,49 @@ u8 gameUpdate(Context *ctx) {
         return 1;
     }
 
+    if (gameDraw(ctx) != 0) {
+        return 1;
+    }
+    if (gameHandleInput(ctx) != 0) {
+        return 1;
+    }
+
+    return 0;
+}
+
+u8 gameDraw(Context *ctx) {
+    if (ctx == NULL) {
+        return 1;
+    }
+
     clear();
-    mvprintw(0, 0, horse);
-    mvprintw(10, 0, "Press 'q' to quit.");
+
+    switch (ctx->state) {
+        case MAIN_MENU:
+            break;
+        case GAME:
+            menuDrawBorder(ctx);
+            break;
+    }
+
     refresh();
 
+    return 0;
+}
+
+u8 gameHandleInput(Context *ctx) {
+    if (ctx == NULL) {
+        return 1;
+    }
+
     int ch = getch();
-    if (ch == 'q' || ch == 'Q') {
-        ctx->state = MAIN_MENU;
+
+    switch (ch) {
+        case 'q':
+            ctx->state = QUIT;
+            break;
+        default:
+            break;
     }
 
     return 0;

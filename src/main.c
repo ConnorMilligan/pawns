@@ -3,18 +3,14 @@
 #include "engine/engine.h"
 
 int main(int argc, char **argv) {    
-    Context ctx;
-
-    if (contextBuild(&ctx) != 0) {
-        return 1;
-    }
+    Context ctx = {};
 
     if (gameInit(&ctx) != 0) {
         contextDestroy(&ctx);
         return 1;
     }
 
-    while (ctx.state == GAME) {
+    while (ctx.state != QUIT) {
         gameUpdate(&ctx);
     }
 

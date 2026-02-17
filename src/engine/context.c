@@ -1,10 +1,12 @@
 #include "engine.h"
 
-u8 contextBuild(Context *ctx) {
+u8 contextBuild(Context *ctx, WINDOW *stdscr) {
     if (ctx == NULL) {
         return 1;
     }
 
+    // Set fields
+    ctx->stdscr = stdscr;
     ctx->state = MAIN_MENU;
 
     return 0;
