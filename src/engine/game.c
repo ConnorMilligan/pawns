@@ -3,6 +3,7 @@
 #include <curses.h>
 
 u8 gameDraw(Context *ctx);
+u8 gameDrawChangeState(Context *ctx);
 u8 gameHandleInput(Context *ctx);
 
 u8 gameInit(Context *ctx) {
@@ -21,7 +22,7 @@ u8 gameInit(Context *ctx) {
         return 1;
     }
 
-    ctx->state = GAME;
+    gameDrawChangeState(ctx);
 
     return 0;
 }
@@ -46,17 +47,34 @@ u8 gameDraw(Context *ctx) {
         return 1;
     }
 
-    clear();
+    wclear(ctx->canvas);
 
     switch (ctx->state) {
-        case MAIN_MENU:
-            break;
         case GAME:
-            menuDrawBorder(ctx);
+            break;
+        case QUIT:
             break;
     }
 
-    refresh();
+    wrefresh(ctx->canvas);
+
+    return 0;
+}
+
+u8 gameDrawChangeState(Context *ctx) {
+    if (ctx == NULL) {
+        return 1;
+    }
+
+    switch (ctx->state) {
+        case GAME:
+            menuDrawBorder(ctx->stdscr, "PAWNS");
+            break;
+        case QUIT:
+            break;
+    }
+
+    wrefresh(ctx->stdscr);
 
     return 0;
 }

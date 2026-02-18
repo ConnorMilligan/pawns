@@ -7,7 +7,10 @@ u8 contextBuild(Context *ctx, WINDOW *stdscr) {
 
     // Set fields
     ctx->stdscr = stdscr;
-    ctx->state = MAIN_MENU;
+    ctx->canvas = newwin(LINES - 2, COLS - 2, 1, 1);
+
+    // Set state
+    ctx->state = GAME;
 
     return 0;
 }

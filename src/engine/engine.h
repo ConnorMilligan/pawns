@@ -6,14 +6,15 @@
 #include <curses.h>
 
 enum GameState {
-    MAIN_MENU,
     GAME,
     QUIT,
 };
 
 typedef struct {
     enum GameState state;
+
     WINDOW *stdscr;
+    WINDOW *canvas;
 } Context;
 
 // --- Engine functions ---
@@ -27,6 +28,6 @@ u8 gameUpdate(Context *ctx);
 u8 gameDestroy(Context *ctx);
 
 // Menu
-u8 menuDrawBorder(Context *ctx);
+u8 menuDrawBorder(WINDOW *win, const char *title);
 
 #endif // ENGINE_H
