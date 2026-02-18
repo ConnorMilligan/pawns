@@ -22,7 +22,13 @@ u8 gameInit(Context *ctx) {
 
     if (has_colors()) {
         start_color();
-        init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+        init_pair(1, COLOR_WHITE, COLOR_BLACK);
+        init_pair(2, COLOR_RED, COLOR_BLACK);
+        init_pair(3, COLOR_GREEN, COLOR_BLACK);
+        init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+        init_pair(5, COLOR_BLUE, COLOR_BLACK);
+        init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+        init_pair(7, COLOR_CYAN, COLOR_BLACK);
     }
 
     if (contextBuild(ctx, stdscr) != 0) {
@@ -64,9 +70,10 @@ u8 gameDraw(Context *ctx) {
         case GAME:
             contextDrawPawns(ctx);
             if (ctx->isPaused) {
-                attron(COLOR_PAIR(1));
-                mvwaddstr(ctx->canvas, LINES / 2 - 1, COLS / 2 - 5, "* PAUSED *");///
-                attroff(COLOR_PAIR(1));
+                // Draw paused message in yellow
+                wattron(ctx->canvas, COLOR_PAIR(CP_YELLOW) | A_BOLD | A_BLINK);
+                mvwprintw(ctx->canvas, LINES / 2 - 1, (COLS - 10) / 2, "* PAUSED *");
+                wattroff(ctx->canvas, COLOR_PAIR(CP_YELLOW) | A_BOLD | A_BLINK);
             }
             break;
         case QUIT:

@@ -8,6 +8,14 @@
 #define MAX_PAWNS 10
 #define TPS 10
 
+#define CP_WHITE 1
+#define CP_RED 2
+#define CP_GREEN 3
+#define CP_YELLOW 4
+#define CP_BLUE 5
+#define CP_MAGENTA 6
+#define CP_CYAN 7
+
 enum GameState {
     GAME,
     QUIT,
