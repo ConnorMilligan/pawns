@@ -26,6 +26,7 @@ typedef struct {
 
 typedef struct {
     enum GameState state;
+    bool isPaused;
 
     Pawn pawns[MAX_PAWNS];
 
@@ -38,6 +39,7 @@ typedef struct {
 u8 contextBuild(Context *ctx, WINDOW *stdscr);
 u8 contextAddPawn(Context *ctx);
 u8 contextDrawPawns(Context *ctx);
+u8 contextPause(Context *ctx);
 u8 contextDestroy(Context *ctx);
 
 // Game

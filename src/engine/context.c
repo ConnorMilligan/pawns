@@ -15,6 +15,7 @@ u8 contextBuild(Context *ctx, WINDOW *stdscr) {
 
     // Set state
     ctx->state = GAME;
+    ctx->isPaused = false;
 
     return 0;
 }
@@ -45,6 +46,18 @@ u8 contextDrawPawns(Context *ctx) {
                 return 1;
             }
         }
+    }
+
+    return 0;
+}
+
+u8 contextPause(Context *ctx) {
+    if (ctx == NULL) {
+        return 1;
+    }
+
+    if (ctx->state == GAME) {
+        ctx->isPaused = !ctx->isPaused;
     }
 
     return 0;

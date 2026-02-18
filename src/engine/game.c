@@ -20,6 +20,11 @@ u8 gameInit(Context *ctx) {
     nodelay(stdscr, TRUE);
     curs_set(0);
 
+    if (has_colors()) {
+        start_color();
+        init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+    }
+
     if (contextBuild(ctx, stdscr) != 0) {
         endwin();
         return 1;
@@ -41,7 +46,7 @@ u8 gameUpdate(Context *ctx) {
     if (gameHandleInput(ctx) != 0) {
         return 1;
     }
-    if (gameTick(ctx) != 0) {
+    if (!ctx->isPaused && gameTick(ctx) != 0) {
         return 1;
     }
 
@@ -58,6 +63,12 @@ u8 gameDraw(Context *ctx) {
     switch (ctx->state) {
         case GAME:
             contextDrawPawns(ctx);
+            if (ctx->isPaused) {
+                attron(COLOR_PAIR(1));
+                mvwaddstr(ctx->canvas, LINES / 2 - 1, COLS / 2 - 5, "* PAUSED *");///
+                attroff(COLOR_PAIR(1));
+            }
+            break;
         case QUIT:
             break;
     }
@@ -83,6 +94,9 @@ u8 gameHandleInput(Context *ctx) {
             break;
         case 'a':
             contextAddPawn(ctx);
+            break;
+        case ' ':
+            contextPause(ctx);
             break;
         default:
             break;
