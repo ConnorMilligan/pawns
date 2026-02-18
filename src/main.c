@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
 
     while (ctx.state != QUIT) {
         gameUpdate(&ctx);
+        napms(1000 / TPS);
     }
 
     gameDestroy(&ctx);
