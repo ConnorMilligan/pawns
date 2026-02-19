@@ -1,10 +1,14 @@
 #include "engine.h"
 
+#include <stdlib.h>
+
 Tile tileBuild(enum TileID id) {
     switch (id) {
         case TI_GRASS:
+            // random symbols for grass
+            char symbols[] = {',', '.', '`', '\"'};
             return (Tile) {
-                .symbol = ',',
+                .symbol = symbols[rand() % 4],
                 .name = "Grass",
                 .color = CP_GREEN,
                 .isSolid = false,

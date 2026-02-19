@@ -2,14 +2,15 @@
 #define ENGINE_H
 
 #include <curses.h>
+#include <stdint.h>
 
 #define TERM_COLS 80
 #define TERM_ROWS 25
 
 #define WIN_COUNT 2
 
-#define MAX_PAWNS 10
-#define TPS 10
+#define MAX_PAWNS 30
+#define TPS 15
 
 #define CP_WHITE 1
 #define CP_RED 2
@@ -97,7 +98,7 @@ uint8_t menuDrawBorder(WINDOW *win, const char *title);
 Pawn pawnBuild(const char symbol);
 uint8_t pawnMove(Pawn *pawn, int8_t dx, int8_t dy);
 uint8_t pawnDraw(Pawn *pawn, WINDOW *win);
-uint8_t pawnMovePath(Pawn *pawn, Position target);
+uint8_t pawnMovePath(Pawn *pawn, Map *map, Position target);
 
 // Population
 Population populationBuild();
@@ -110,7 +111,7 @@ uint8_t tileDraw(Tile *tile, WINDOW *win);
 
 // Map
 Map mapBuild(uint16_t rows, uint16_t cols);
-Map* mapGetTile(Position pos);
+Tile* mapGetTile(Map *map, Position pos);
 uint8_t mapDraw(Map *map, WINDOW *win);
 uint8_t mapDestroy(Map *map);
 

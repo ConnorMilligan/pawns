@@ -11,12 +11,23 @@ Map mapBuild(uint16_t rows, uint16_t cols) {
     for (size_t i = 0; i < rows; i++) {
         map.tiles[i] = malloc(cols * sizeof(Tile));
         for (size_t j = 0; j < cols; j++) {
-            map.tiles[i][j] = tileBuild(TI_GRASS);
+            if (rand() % 10 < 1) {
+                map.tiles[i][j] = tileBuild(TI_WALL);
+            } else {
+                map.tiles[i][j] = tileBuild(TI_GRASS);
+            }
             map.tiles[i][j].pos.x = j;
             map.tiles[i][j].pos.y = i;
         }
     }
     return map;
+}
+
+Tile* mapGetTile(Map *map, Position pos) {
+    if (pos.x < 0 || pos.x >= map->cols || pos.y < 0 || pos.y >= map->rows) {
+        return NULL;
+    }
+    return &map->tiles[pos.y][pos.x];
 }
 
 uint8_t mapDraw(Map *map, WINDOW *win) {
