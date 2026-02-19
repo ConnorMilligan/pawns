@@ -24,6 +24,11 @@ enum GameState {
     GS_QUIT,
 };
 
+enum TileID {
+    TI_GRASS,
+    TI_WALL
+};
+
 enum Windows {
     WIN_STDSCR,
     WIN_CANVAS,
@@ -42,19 +47,40 @@ typedef struct {
 } Pawn;
 
 typedef struct {
+    Pawn pawns[MAX_PAWNS];
+    uint16_t count;
+} Population;
+
+typedef struct {
+    char symbol;
+    const char *name;
+    uint8_t color;
+
+    Position pos;
+
+    bool isSolid;
+} Tile;
+
+typedef struct {
+    Tile **tiles;
+    uint16_t rows, cols;
+} Map;
+
+typedef struct {
     enum GameState state;
     bool isPaused;
 
-    Pawn pawns[MAX_PAWNS];
+    Population pop;
+
+    uint16_t rows, cols;
 
     WINDOW *windows[WIN_COUNT];
+    Map map;
 } Context;
 
 // --- Engine functions ---
 // Context
 uint8_t contextBuild(Context *ctx, WINDOW *stdscr);
-uint8_t contextAddPawn(Context *ctx);
-uint8_t contextDrawPawns(Context *ctx);
 uint8_t contextRefresh(Context *ctx);
 uint8_t contextPause(Context *ctx);
 uint8_t contextDestroy(Context *ctx);
@@ -72,6 +98,21 @@ Pawn pawnBuild(const char symbol);
 uint8_t pawnMove(Pawn *pawn, int8_t dx, int8_t dy);
 uint8_t pawnDraw(Pawn *pawn, WINDOW *win);
 uint8_t pawnMovePath(Pawn *pawn, Position target);
+
+// Population
+Population populationBuild();
+uint8_t populationAddPawn(Population *pop);
+uint8_t populationDraw(Population *pop, WINDOW *win);
+
+// Tile
+Tile tileBuild(enum TileID id);
+uint8_t tileDraw(Tile *tile, WINDOW *win);
+
+// Map
+Map mapBuild(uint16_t rows, uint16_t cols);
+Map* mapGetTile(Position pos);
+uint8_t mapDraw(Map *map, WINDOW *win);
+uint8_t mapDestroy(Map *map);
 
 
 #endif // ENGINE_H

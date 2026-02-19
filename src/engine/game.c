@@ -76,7 +76,8 @@ uint8_t gameDraw(Context *ctx) {
 
     switch (ctx->state) {
         case GS_GAME:
-            contextDrawPawns(ctx);
+            mapDraw(&ctx->map, ctx->windows[WIN_CANVAS]);
+            populationDraw(&ctx->pop, ctx->windows[WIN_CANVAS]);
             if (ctx->isPaused) {
                 // Draw paused message in yellow
                 wattron(ctx->windows[WIN_CANVAS], COLOR_PAIR(CP_YELLOW) | A_BOLD | A_BLINK);
@@ -108,7 +109,7 @@ uint8_t gameHandleInput(Context *ctx) {
             ctx->state = GS_QUIT;
             break;
         case 'a':
-            contextAddPawn(ctx);
+            populationAddPawn(&ctx->pop);
             break;
         case ' ':
             contextPause(ctx);
@@ -126,14 +127,14 @@ uint8_t gameTick(Context *ctx) {
     }
 
     for (size_t i = 0; i < MAX_PAWNS; i++) {
-        if (ctx->pawns[i].symbol != 32) {
-            if (!ctx->pawns[i].isPathfinding || 
-                (ctx->pawns[i].pos.x == ctx->pawns[i].pathTarget.x && 
-                 ctx->pawns[i].pos.y == ctx->pawns[i].pathTarget.y)) {
+        if (ctx->pop.pawns[i].symbol != 32) {
+            if (!ctx->pop.pawns[i].isPathfinding || 
+                (ctx->pop.pawns[i].pos.x == ctx->pop.pawns[i].pathTarget.x && 
+                 ctx->pop.pawns[i].pos.y == ctx->pop.pawns[i].pathTarget.y)) {
                 Position target = {rand() % (TERM_COLS - 2) + 1, rand() % (TERM_ROWS - 2) + 1};
-                pawnMovePath(&ctx->pawns[i], target);
+                pawnMovePath(&ctx->pop.pawns[i], target);
             } else {
-                pawnMovePath(&ctx->pawns[i], ctx->pawns[i].pathTarget);
+                pawnMovePath(&ctx->pop.pawns[i], ctx->pop.pawns[i].pathTarget);
             }
         }
     }
@@ -165,6 +166,7 @@ uint8_t gameDestroy(Context *ctx) {
         return 1;
     }
 
+    contextDestroy(ctx);
     endwin();
 
     return 0;
