@@ -36,8 +36,9 @@ typedef struct {
 
 typedef struct {
     char symbol;
-
     Position pos;
+    Position pathTarget;
+    bool isPathfinding;
 } Pawn;
 
 typedef struct {
@@ -70,6 +71,7 @@ uint8_t menuDrawBorder(WINDOW *win, const char *title);
 Pawn pawnBuild(const char symbol);
 uint8_t pawnMove(Pawn *pawn, int8_t dx, int8_t dy);
 uint8_t pawnDraw(Pawn *pawn, WINDOW *win);
+uint8_t pawnMovePath(Pawn *pawn, Position target);
 
 
 #endif // ENGINE_H

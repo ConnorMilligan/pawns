@@ -80,7 +80,9 @@ uint8_t contextDestroy(Context *ctx) {
         return 1;
     }
 
-    // Currently nothing to clean up
+    for (size_t i = 1; i < WIN_COUNT; i++) {
+        delwin(ctx->windows[i]);
+    }
 
     return 0;
 }

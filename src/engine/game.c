@@ -127,10 +127,14 @@ uint8_t gameTick(Context *ctx) {
 
     for (size_t i = 0; i < MAX_PAWNS; i++) {
         if (ctx->pawns[i].symbol != 32) {
-            // Move pawn randomly
-            int8_t dx = (rand() % 3) - 1;
-            int8_t dy = (rand() % 3) - 1;
-            pawnMove(&ctx->pawns[i], dx, dy);
+            if (!ctx->pawns[i].isPathfinding || 
+                (ctx->pawns[i].pos.x == ctx->pawns[i].pathTarget.x && 
+                 ctx->pawns[i].pos.y == ctx->pawns[i].pathTarget.y)) {
+                Position target = {rand() % (TERM_COLS - 2) + 1, rand() % (TERM_ROWS - 2) + 1};
+                pawnMovePath(&ctx->pawns[i], target);
+            } else {
+                pawnMovePath(&ctx->pawns[i], ctx->pawns[i].pathTarget);
+            }
         }
     }
 
