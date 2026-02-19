@@ -1,9 +1,12 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include "util.h"
-
 #include <curses.h>
+
+#define TERM_COLS 80
+#define TERM_ROWS 25
+
+#define WIN_COUNT 2
 
 #define MAX_PAWNS 10
 #define TPS 10
@@ -17,13 +20,18 @@
 #define CP_CYAN 7
 
 enum GameState {
-    GAME,
-    QUIT,
+    GS_GAME,
+    GS_QUIT,
+};
+
+enum Windows {
+    WIN_STDSCR,
+    WIN_CANVAS,
 };
 
 typedef struct {
-    u8 x;
-    u8 y;
+    uint8_t x;
+    uint8_t y;
 } Position;
 
 typedef struct {
@@ -38,30 +46,30 @@ typedef struct {
 
     Pawn pawns[MAX_PAWNS];
 
-    WINDOW *stdscr;
-    WINDOW *canvas;
+    WINDOW *windows[WIN_COUNT];
 } Context;
 
 // --- Engine functions ---
 // Context
-u8 contextBuild(Context *ctx, WINDOW *stdscr);
-u8 contextAddPawn(Context *ctx);
-u8 contextDrawPawns(Context *ctx);
-u8 contextPause(Context *ctx);
-u8 contextDestroy(Context *ctx);
+uint8_t contextBuild(Context *ctx, WINDOW *stdscr);
+uint8_t contextAddPawn(Context *ctx);
+uint8_t contextDrawPawns(Context *ctx);
+uint8_t contextRefresh(Context *ctx);
+uint8_t contextPause(Context *ctx);
+uint8_t contextDestroy(Context *ctx);
 
 // Game
-u8 gameInit(Context *ctx);
-u8 gameUpdate(Context *ctx);
-u8 gameDestroy(Context *ctx);
+uint8_t gameInit(Context *ctx);
+uint8_t gameUpdate(Context *ctx);
+uint8_t gameDestroy(Context *ctx);
 
 // Menu
-u8 menuDrawBorder(WINDOW *win, const char *title);
+uint8_t menuDrawBorder(WINDOW *win, const char *title);
 
 // Pawn
 Pawn pawnBuild(const char symbol);
-u8 pawnMove(Pawn *pawn, i8 dx, i8 dy);
-u8 pawnDraw(Pawn *pawn, WINDOW *win);
+uint8_t pawnMove(Pawn *pawn, int8_t dx, int8_t dy);
+uint8_t pawnDraw(Pawn *pawn, WINDOW *win);
 
 
 #endif // ENGINE_H

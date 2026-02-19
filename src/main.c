@@ -1,5 +1,3 @@
-#include <curses.h>
-
 #include "engine/engine.h"
 
 int main(int argc, char **argv) {    
@@ -10,7 +8,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    while (ctx.state != QUIT) {
+    while (ctx.state != GS_QUIT) {
         gameUpdate(&ctx);
         napms(1000 / TPS);
     }

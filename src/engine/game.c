@@ -3,12 +3,12 @@
 #include <curses.h>
 #include <stdlib.h>
 
-u8 gameDraw(Context *ctx);
-u8 gameDrawChangeState(Context *ctx);
-u8 gameHandleInput(Context *ctx);
-u8 gameTick(Context *ctx);
+uint8_t gameDraw(Context *ctx);
+uint8_t gameDrawChangeState(Context *ctx);
+uint8_t gameHandleInput(Context *ctx);
+uint8_t gameTick(Context *ctx);
 
-u8 gameInit(Context *ctx) {
+uint8_t gameInit(Context *ctx) {
     if (ctx == NULL) {
         return 1;
     }
@@ -19,6 +19,15 @@ u8 gameInit(Context *ctx) {
     keypad(stdscr, TRUE);
     nodelay(stdscr, TRUE);
     curs_set(0);
+
+    // Check terminal size
+    int rows, cols;
+    getmaxyx(stdscr, rows, cols);
+    if (rows < TERM_ROWS || cols < TERM_COLS) {
+        endwin();
+        fprintf(stderr, "Terminal size must be at least %dx%d\n", TERM_COLS, TERM_ROWS);
+        return 1;
+    }
 
     if (has_colors()) {
         start_color();
@@ -35,13 +44,12 @@ u8 gameInit(Context *ctx) {
         endwin();
         return 1;
     }
-
+    
     gameDrawChangeState(ctx);
-
     return 0;
 }
 
-u8 gameUpdate(Context *ctx) {
+uint8_t gameUpdate(Context *ctx) {
     if (ctx == NULL) {
         return 1;
     }
@@ -59,33 +67,33 @@ u8 gameUpdate(Context *ctx) {
     return 0;
 }
 
-u8 gameDraw(Context *ctx) {
+uint8_t gameDraw(Context *ctx) {
     if (ctx == NULL) {
         return 1;
     }
 
-    werase(ctx->canvas);
+    werase(ctx->windows[WIN_CANVAS]);
 
     switch (ctx->state) {
-        case GAME:
+        case GS_GAME:
             contextDrawPawns(ctx);
             if (ctx->isPaused) {
                 // Draw paused message in yellow
-                wattron(ctx->canvas, COLOR_PAIR(CP_YELLOW) | A_BOLD | A_BLINK);
-                mvwprintw(ctx->canvas, LINES / 2 - 1, (COLS - 10) / 2, "* PAUSED *");
-                wattroff(ctx->canvas, COLOR_PAIR(CP_YELLOW) | A_BOLD | A_BLINK);
+                wattron(ctx->windows[WIN_CANVAS], COLOR_PAIR(CP_YELLOW) | A_BOLD | A_BLINK);
+                mvwprintw(ctx->windows[WIN_CANVAS], LINES / 2 - 1, (COLS - 10) / 2, "* PAUSED *");
+                wattroff(ctx->windows[WIN_CANVAS], COLOR_PAIR(CP_YELLOW) | A_BOLD | A_BLINK);
             }
             break;
-        case QUIT:
+        case GS_QUIT:
             break;
     }
 
-    wrefresh(ctx->canvas);
+    wrefresh(ctx->windows[WIN_CANVAS]);
 
     return 0;
 }
 
-u8 gameHandleInput(Context *ctx) {
+uint8_t gameHandleInput(Context *ctx) {
     if (ctx == NULL) {
         return 1;
     }
@@ -97,7 +105,7 @@ u8 gameHandleInput(Context *ctx) {
 
     switch (ch) {
         case 'q':
-            ctx->state = QUIT;
+            ctx->state = GS_QUIT;
             break;
         case 'a':
             contextAddPawn(ctx);
@@ -112,7 +120,7 @@ u8 gameHandleInput(Context *ctx) {
     return 0;
 }
 
-u8 gameTick(Context *ctx) {
+uint8_t gameTick(Context *ctx) {
     if (ctx == NULL) {
         return 1;
     }
@@ -120,8 +128,8 @@ u8 gameTick(Context *ctx) {
     for (size_t i = 0; i < MAX_PAWNS; i++) {
         if (ctx->pawns[i].symbol != 32) {
             // Move pawn randomly
-            i8 dx = (rand() % 3) - 1;
-            i8 dy = (rand() % 3) - 1;
+            int8_t dx = (rand() % 3) - 1;
+            int8_t dy = (rand() % 3) - 1;
             pawnMove(&ctx->pawns[i], dx, dy);
         }
     }
@@ -129,26 +137,26 @@ u8 gameTick(Context *ctx) {
     return 0;
 }
 
-u8 gameDrawChangeState(Context *ctx) {
+uint8_t gameDrawChangeState(Context *ctx) {
     if (ctx == NULL) {
         return 1;
     }
 
     switch (ctx->state) {
-        case GAME:
-            menuDrawBorder(ctx->stdscr, "PAWNS");
+        case GS_GAME:
+            menuDrawBorder(ctx->windows[WIN_STDSCR], "PAWNS");
             break;
-        case QUIT:
+        case GS_QUIT:
             break;
     }
 
-    wrefresh(ctx->stdscr);
+    contextRefresh(ctx);
 
     return 0;
 }
 
 
-u8 gameDestroy(Context *ctx) {
+uint8_t gameDestroy(Context *ctx) {
     if (ctx == NULL) {
         return 1;
     }

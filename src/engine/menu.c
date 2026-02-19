@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-u8 menuDrawBorder(WINDOW *win, const char *title) {
+uint8_t menuDrawBorder(WINDOW *win, const char *title) {
     if (win == NULL || title == NULL) {
         return 1;
     }
