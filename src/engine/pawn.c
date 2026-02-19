@@ -7,32 +7,44 @@ static inline int idx_of(Position p, uint16_t cols) {
     return p.y * cols + p.x;
 }
 
-// Validate position against map bounds and solidity
-static uint8_t isValidPos(Position pos, Map *map) {
+// Check if a position is occupied by another pawn (exclude self)
+static uint8_t isPawnOccupied(Position pos, Population *pop, Pawn *self) {
+    if (pop == NULL) return 0;
+    for (uint16_t i = 0; i < pop->count; i++) {
+        if (&pop->pawns[i] == self) continue; // skip self
+        if (pop->pawns[i].pos.x == pos.x && pop->pawns[i].pos.y == pos.y) {
+            return 1; // occupied
+        }
+    }
+    return 0;
+}
+
+// Validate position against map bounds, solidity, and pawn occupancy
+static uint8_t isValidPosWithOccupancy(Position pos, Map *map, Population *pop, Pawn *self) {
     if (map == NULL) return 0;
     if (pos.x < 0 || pos.x >= map->cols || pos.y < 0 || pos.y >= map->rows) return 0;
     Tile *t = mapGetTile(map, pos);
     if (t == NULL) return 0;
-    return !t->isSolid;
+    if (t->isSolid) return 0;
+    // Check pawn occupancy (other pawns block the path)
+    if (pop != NULL && isPawnOccupied(pos, pop, self)) return 0;
+    return 1;
 }
 
-// Simple A* to compute the next step from start towards goal avoiding solid tiles
-static Position aStarNextStep(Map *map, Position start, Position goal) {
-    Position empty = start;
-    if (map == NULL) return empty;
-
-    // If start or goal invalid return start
-    if (!isValidPos(start, map) || !isValidPos(goal, map)) return start;
+// Compute full path from start to goal, store in pawn's pathCache, avoid other pawns
+static uint8_t aStarComputeFullPath(Pawn *pawn, Map *map, Population *pop, Position start, Position goal) {
+    if (map == NULL || pawn == NULL) return 1;
+    if (!isValidPosWithOccupancy(start, map, pop, pawn) || !isValidPosWithOccupancy(goal, map, pop, pawn)) return 1;
 
     uint32_t total = (uint32_t)map->rows * (uint32_t)map->cols;
     float *gScore = malloc(total * sizeof(float));
     float *fScore = malloc(total * sizeof(float));
     int *cameFrom = malloc(total * sizeof(int));
-    unsigned char *openSet = malloc(total); // 0/1 flags
+    unsigned char *openSet = malloc(total);
     unsigned char *closedSet = malloc(total);
     if (!gScore || !fScore || !cameFrom || !openSet || !closedSet) {
         free(gScore); free(fScore); free(cameFrom); free(openSet); free(closedSet);
-        return start;
+        return 1;
     }
 
     for (uint32_t i = 0; i < total; i++) {
@@ -49,7 +61,6 @@ static Position aStarNextStep(Map *map, Position start, Position goal) {
     fScore[startIdx] = (float)(abs(start.x - goal.x) + abs(start.y - goal.y));
     openSet[startIdx] = 1;
 
-    // helper to pick node in open set with lowest fScore
     while (1) {
         int current = -1;
         float bestF = INFINITY;
@@ -59,23 +70,32 @@ static Position aStarNextStep(Map *map, Position start, Position goal) {
                 current = (int)i;
             }
         }
-        if (current == -1) break; // open set empty
+        if (current == -1) {
+            free(gScore); free(fScore); free(cameFrom); free(openSet); free(closedSet);
+            pawn->pathLength = 0;
+            pawn->pathIndex = 0;
+            return 1; // no path found
+        }
 
         if (current == goalIdx) {
-            // reconstruct path, return the step after start
-            int cur = current;
-            int prev = cameFrom[cur];
-            while (prev != -1 && prev != startIdx) {
-                cur = prev;
-                prev = cameFrom[cur];
+            // reconstruct full path
+            int path_stack[256];
+            int path_len = 0;
+            int cur = goalIdx;
+            while (cur != -1 && path_len < 256) {
+                path_stack[path_len++] = cur;
+                cur = cameFrom[cur];
             }
-            Position out = start;
-            if (cur != startIdx) {
-                out.x = cur % map->cols;
-                out.y = cur / map->cols;
+            // reverse path
+            pawn->pathLength = (uint16_t)path_len;
+            for (int i = 0; i < path_len; i++) {
+                int idx = path_stack[path_len - 1 - i];
+                pawn->pathCache[i].x = idx % map->cols;
+                pawn->pathCache[i].y = idx / map->cols;
             }
             free(gScore); free(fScore); free(cameFrom); free(openSet); free(closedSet);
-            return out;
+            pawn->pathIndex = 0;
+            return 0;
         }
 
         openSet[current] = 0;
@@ -83,11 +103,10 @@ static Position aStarNextStep(Map *map, Position start, Position goal) {
 
         int cx = current % map->cols;
         int cy = current / map->cols;
-
         Position neighbors[4] = {{cx+1, cy}, {cx-1, cy}, {cx, cy+1}, {cx, cy-1}};
         for (int ni = 0; ni < 4; ni++) {
             Position np = neighbors[ni];
-            if (!isValidPos(np, map)) continue;
+            if (!isValidPosWithOccupancy(np, map, pop, pawn)) continue;
             int niidx = idx_of(np, map->cols);
             if (closedSet[niidx]) continue;
             float tentative = gScore[current] + 1.0f;
@@ -98,9 +117,6 @@ static Position aStarNextStep(Map *map, Position start, Position goal) {
             fScore[niidx] = tentative + (float)(abs(np.x - goal.x) + abs(np.y - goal.y));
         }
     }
-
-    free(gScore); free(fScore); free(cameFrom); free(openSet); free(closedSet);
-    return start; // no path found
 }
 
 Pawn pawnBuild(const char symbol) {
@@ -109,6 +125,8 @@ Pawn pawnBuild(const char symbol) {
         .pos = {0, 0},
         .pathTarget = {0, 0},
         .isPathfinding = false,
+        .pathLength = 0,
+        .pathIndex = 0,
     };
 }
 
@@ -127,35 +145,49 @@ uint8_t pawnDraw(Pawn *pawn, WINDOW *win) {
     return 0;
 }
 
-uint8_t pawnMovePath(Pawn *pawn, Map *map, Position target) {
+uint8_t pawnMovePath(Pawn *pawn, Map *map, Population *pop, Position target) {
     if (pawn == NULL || map == NULL) return 1;
 
     // Ensure pawn is inside the map; if not, place at center
-    if (!isValidPos(pawn->pos, map)) {
+    if (!isValidPosWithOccupancy(pawn->pos, map, pop, pawn)) {
         pawn->pos.x = map->cols / 2;
         pawn->pos.y = map->rows / 2;
     }
 
-    if (!isValidPos(target, map)) return 1;
+    if (!isValidPosWithOccupancy(target, map, pop, pawn)) return 1;
 
     if (pawn->pos.x == target.x && pawn->pos.y == target.y) {
         pawn->isPathfinding = false;
         return 0;
     }
 
+    // New target? Compute the full path
     if (target.x != pawn->pathTarget.x || target.y != pawn->pathTarget.y) {
         pawn->pathTarget = target;
-        pawn->isPathfinding = true;
+        aStarComputeFullPath(pawn, map, pop, pawn->pos, target);
+        pawn->isPathfinding = (pawn->pathLength > 0);
+        if (!pawn->isPathfinding) return 0;
     }
 
-    Position next = aStarNextStep(map, pawn->pos, pawn->pathTarget);
-    if (next.x == pawn->pos.x && next.y == pawn->pos.y) {
-        // no progress possible
-        pawn->isPathfinding = false;
-        return 0;
+    // Step along cached path only if next position is not occupied
+    if (pawn->isPathfinding && pawn->pathIndex < pawn->pathLength) {
+        Position nextPos = pawn->pathCache[pawn->pathIndex];
+        // Check if next position is occupied (recalculate if blocked)
+        if (isPawnOccupied(nextPos, pop, pawn)) {
+            pawn->isPathfinding = false; // invalidate path, will recalculate next tick
+            return 0;
+        }
+        pawn->pos = nextPos;
+        pawn->pathIndex++;
+        if (pawn->pathIndex >= pawn->pathLength) {
+            pawn->isPathfinding = false;
+        }
     }
 
-    // Move directly to next cell
-    pawn->pos = next;
     return 0;
+}
+
+uint8_t pawnComputePathFull(Pawn *pawn, Map *map, Population *pop, Position goal) {
+    if (pawn == NULL || map == NULL) return 1;
+    return aStarComputeFullPath(pawn, map, pop, pawn->pos, goal);
 }

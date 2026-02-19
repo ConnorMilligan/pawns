@@ -132,9 +132,9 @@ uint8_t gameTick(Context *ctx) {
                 (ctx->pop.pawns[i].pos.x == ctx->pop.pawns[i].pathTarget.x && 
                  ctx->pop.pawns[i].pos.y == ctx->pop.pawns[i].pathTarget.y)) {
                 Position target = {rand() % (TERM_COLS - 2) + 1, rand() % (TERM_ROWS - 2) + 1};
-                pawnMovePath(&ctx->pop.pawns[i], &ctx->map, target);
+                pawnMovePath(&ctx->pop.pawns[i], &ctx->map, &ctx->pop, target);
             } else {
-                pawnMovePath(&ctx->pop.pawns[i], &ctx->map, ctx->pop.pawns[i].pathTarget);
+                pawnMovePath(&ctx->pop.pawns[i], &ctx->map, &ctx->pop, ctx->pop.pawns[i].pathTarget);
             }
         }
     }

@@ -40,11 +40,16 @@ typedef struct {
     uint8_t y;
 } Position;
 
+#define MAX_PATH_LENGTH 256
+
 typedef struct {
     char symbol;
     Position pos;
     Position pathTarget;
     bool isPathfinding;
+    Position pathCache[MAX_PATH_LENGTH];
+    uint16_t pathLength;
+    uint16_t pathIndex; // current position in path
 } Pawn;
 
 typedef struct {
@@ -98,7 +103,8 @@ uint8_t menuDrawBorder(WINDOW *win, const char *title);
 Pawn pawnBuild(const char symbol);
 uint8_t pawnMove(Pawn *pawn, int8_t dx, int8_t dy);
 uint8_t pawnDraw(Pawn *pawn, WINDOW *win);
-uint8_t pawnMovePath(Pawn *pawn, Map *map, Position target);
+uint8_t pawnMovePath(Pawn *pawn, Map *map, Population *pop, Position target);
+uint8_t pawnComputePathFull(Pawn *pawn, Map *map, Population *pop, Position goal);
 
 // Population
 Population populationBuild();
