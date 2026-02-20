@@ -23,9 +23,9 @@ uint8_t gameInit(Context *ctx) {
     // Check terminal size
     int rows, cols;
     getmaxyx(stdscr, rows, cols);
-    if (rows < TERM_ROWS || cols < TERM_COLS) {
+    if (rows < TERM_MIN_ROWS || cols < TERM_MIN_COLS) {
         endwin();
-        fprintf(stderr, "Terminal size must be at least %dx%d\n", TERM_COLS, TERM_ROWS);
+        fprintf(stderr, "Terminal size must be at least %dx%d\n", TERM_MIN_COLS, TERM_MIN_ROWS);
         return 1;
     }
 
@@ -131,7 +131,7 @@ uint8_t gameTick(Context *ctx) {
             if (!ctx->pop.pawns[i].isPathfinding || 
                 (ctx->pop.pawns[i].pos.x == ctx->pop.pawns[i].pathTarget.x && 
                  ctx->pop.pawns[i].pos.y == ctx->pop.pawns[i].pathTarget.y)) {
-                Position target = {rand() % (TERM_COLS - 2) + 1, rand() % (TERM_ROWS - 2) + 1};
+                Position target = {rand() % (ctx->cols - 2) + 1, rand() % (ctx->rows - 2) + 1};
                 pawnMovePath(&ctx->pop.pawns[i], &ctx->map, &ctx->pop, target);
             } else {
                 pawnMovePath(&ctx->pop.pawns[i], &ctx->map, &ctx->pop, ctx->pop.pawns[i].pathTarget);

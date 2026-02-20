@@ -4,8 +4,8 @@
 #include <curses.h>
 #include <stdint.h>
 
-#define TERM_COLS 80
-#define TERM_ROWS 25
+#define TERM_MIN_COLS 80
+#define TERM_MIN_ROWS 25
 
 #define WIN_COUNT 2
 
